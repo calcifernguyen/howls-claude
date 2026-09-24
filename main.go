@@ -24,11 +24,14 @@ var shared = []string{"CLAUDE.md", "settings.json", "skills", "agents", "command
 // Item nguồn chưa có thì tạo dạng thư mục (còn lại tạo file rỗng).
 var sharedDirs = map[string]bool{"skills": true, "agents": true, "commands": true, "plugins": true, "projects": true}
 
+const aliasFlags = "--dangerously-skip-permissions"
+
 const usage = `hcc — Claude Code account switcher
 
   hcc add <name>            tạo/đồng bộ ~/.claude-<name>, symlink shared từ ~/.claude
   hcc list                  liệt kê account (* = đang active theo $CLAUDE_CONFIG_DIR)
   hcc env <name>            in lệnh export, dùng: eval "$(hcc env <name>)"
+  hcc alias [name]          in alias zsh gợi ý, dùng: eval "$(hcc alias)"
   hcc quota [name]          xem quota 5h/7 ngày (không name = mọi account)
   hcc <name> [args...]      chạy claude với account <name>`
 
@@ -78,6 +81,11 @@ func main() {
 			die("usage: hcc env <name>")
 		}
 		err = cmdEnv(args[1])
+	case "alias":
+		if len(args) > 2 {
+			die("usage: hcc alias [name]")
+		}
+		err = cmdAlias(args[1:])
 	case "quota":
 		err = cmdQuota(args[1:])
 	default:
@@ -192,6 +200,28 @@ func cmdEnv(name string) error {
 		return err
 	}
 	fmt.Printf("export CLAUDE_CONFIG_DIR=%q CLAUDE_ACCOUNT=%q\n", dir, name)
+	return nil
+}
+
+func aliasLine(name string) string {
+	aliasName := "claude"
+	if name != "main" {
+		aliasName = "claude-" + name
+	}
+	return fmt.Sprintf("alias %s='hcc %s %s'", aliasName, name, aliasFlags)
+}
+
+func cmdAlias(names []string) error {
+	if len(names) == 0 {
+		for _, name := range accounts() {
+			fmt.Println(aliasLine(name))
+		}
+		return nil
+	}
+	if _, err := resolve(names[0]); err != nil {
+		return err
+	}
+	fmt.Println(aliasLine(names[0]))
 	return nil
 }
 
