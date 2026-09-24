@@ -21,6 +21,7 @@ hcc add work              # tạo/đồng bộ ~/.claude-work; item thật cũ -
 hcc work                  # chạy claude bằng account work (lần đầu sẽ login)
 hcc main -c               # args sau tên account chuyển thẳng cho claude
 hcc list                  # * = account theo $CLAUDE_CONFIG_DIR hiện tại
+hcc alias [name]          # in alias zsh gợi ý (dán ~/.zshrc hoặc eval)
 hcc quota [name]          # biểu đồ quota 5h/7 ngày + giờ reset (không name = mọi account)
 eval "$(hcc env work)"    # set env cho shell hiện tại (như c2 trong bài)
 ```
@@ -35,9 +36,17 @@ main       a@x.com
 
 Alias gợi ý trong `~/.zshrc`:
 
+Dùng `hcc alias >> ~/.zshrc` hoặc thêm `eval "$(hcc alias)"` vào `~/.zshrc`:
+
+```sh
+hcc alias >> ~/.zshrc     # hoặc eval "$(hcc alias)"
+```
+
+Ví dụ output:
+
 ```sh
 alias claude='hcc main --dangerously-skip-permissions'
-alias claude-w='hcc work --dangerously-skip-permissions'
+alias claude-work='hcc work --dangerously-skip-permissions'
 ```
 
 `$CLAUDE_ACCOUNT` được set khi chạy, statusline có thể đọc để hiện account.
