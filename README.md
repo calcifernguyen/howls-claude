@@ -34,8 +34,6 @@ main       a@x.com
   7d         █████████████░░░░░░░  66%  reset Mon 17:00
 ```
 
-Alias gợi ý trong `~/.zshrc`:
-
 Dùng `hcc alias >> ~/.zshrc` hoặc thêm `eval "$(hcc alias)"` vào `~/.zshrc`:
 
 ```sh
