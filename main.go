@@ -33,7 +33,9 @@ const usage = `hcc — Claude Code account switcher
   hcc env <name>            in lệnh export, dùng: eval "$(hcc env <name>)"
   hcc alias [name]          in alias zsh gợi ý, dùng: eval "$(hcc alias)"
   hcc quota [name]          xem quota 5h/7 ngày (không name = mọi account)
-  hcc <name> [args...]      chạy claude với account <name>`
+  hcc default [name]        set/xem account mặc định (chưa set = main)
+  hcc <name> [args...]      chạy claude với account <name>
+  hcc [args...]             chạy claude với account mặc định (args bắt đầu bằng -)`
 
 func home() string {
 	h, err := os.UserHomeDir()
@@ -63,12 +65,23 @@ func validName(name string) bool {
 
 func main() {
 	args := os.Args[1:]
-	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" || args[0] == "help" {
+	if len(args) > 0 && (args[0] == "-h" || args[0] == "--help" || args[0] == "help") {
 		fmt.Println(usage)
+		return
+	}
+	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
+		if err := run(defaultName(), args); err != nil {
+			die(err)
+		}
 		return
 	}
 	var err error
 	switch args[0] {
+	case "default":
+		if len(args) > 2 {
+			die("usage: hcc default [name]")
+		}
+		err = cmdDefault(args[1:])
 	case "add":
 		if len(args) != 2 {
 			die("usage: hcc add <name>")
@@ -94,6 +107,28 @@ func main() {
 	if err != nil {
 		die(err)
 	}
+}
+
+func defaultFile() string { return filepath.Join(mainDir(), ".hcc-default") }
+
+// defaultName: account mặc định, chưa set = main.
+func defaultName() string {
+	b, _ := os.ReadFile(defaultFile())
+	if n := strings.TrimSpace(string(b)); n != "" {
+		return n
+	}
+	return "main"
+}
+
+func cmdDefault(names []string) error {
+	if len(names) == 0 {
+		fmt.Println(defaultName())
+		return nil
+	}
+	if _, err := resolve(names[0]); err != nil {
+		return err
+	}
+	return os.WriteFile(defaultFile(), []byte(names[0]+"\n"), 0o644)
 }
 
 func cmdAdd(name string) error {
@@ -204,11 +239,10 @@ func cmdEnv(name string) error {
 }
 
 func aliasLine(name string) string {
-	aliasName := "claude"
-	if name != "main" {
-		aliasName = "claude-" + name
+	if name == "main" { // alias chính chạy account mặc định
+		return fmt.Sprintf("alias claude='hcc %s'", aliasFlags)
 	}
-	return fmt.Sprintf("alias %s='hcc %s %s'", aliasName, name, aliasFlags)
+	return fmt.Sprintf("alias claude-%s='hcc %s %s'", name, name, aliasFlags)
 }
 
 func cmdAlias(names []string) error {

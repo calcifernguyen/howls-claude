@@ -20,6 +20,8 @@ go build -o ~/.local/bin/hcc .
 hcc add work              # tạo/đồng bộ ~/.claude-work; item thật cũ -> <item>.hcc-bak-<unix>
 hcc work                  # chạy claude bằng account work (lần đầu sẽ login)
 hcc main -c               # args sau tên account chuyển thẳng cho claude
+hcc default work          # set account mặc định (lưu file .hcc-default); không tên = in default
+hcc -c                    # không tên / args bắt đầu bằng - => chạy account mặc định
 hcc list                  # * = account theo $CLAUDE_CONFIG_DIR hiện tại
 hcc alias [name]          # in alias zsh gợi ý (dán ~/.zshrc hoặc eval)
 hcc quota [name]          # biểu đồ quota 5h/7 ngày + giờ reset (không name = mọi account)
@@ -43,7 +45,7 @@ hcc alias >> ~/.zshrc     # hoặc eval "$(hcc alias)"
 Ví dụ output:
 
 ```sh
-alias claude='hcc main --dangerously-skip-permissions'
+alias claude='hcc --dangerously-skip-permissions'
 alias claude-work='hcc work --dangerously-skip-permissions'
 ```
 

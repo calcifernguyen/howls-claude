@@ -73,7 +73,7 @@ func TestBar(t *testing.T) {
 }
 
 func TestAliasLine(t *testing.T) {
-	if got := aliasLine("main"); got != "alias claude='hcc main --dangerously-skip-permissions'" {
+	if got := aliasLine("main"); got != "alias claude='hcc --dangerously-skip-permissions'" {
 		t.Errorf("aliasLine(main) = %q", got)
 	}
 	if got := aliasLine("work"); got != "alias claude-work='hcc work --dangerously-skip-permissions'" {
@@ -101,5 +101,27 @@ func TestCmdAlias(t *testing.T) {
 	}
 	if err := cmdAlias([]string{"work"}); err != nil {
 		t.Errorf("cmdAlias(work) error: %v", err)
+	}
+}
+
+func TestDefault(t *testing.T) {
+	h := t.TempDir()
+	t.Setenv("HOME", h)
+	os.MkdirAll(filepath.Join(h, ".claude"), 0o755)
+
+	if got := defaultName(); got != "main" {
+		t.Errorf("chưa set: defaultName = %q, want main", got)
+	}
+	if err := cmdDefault([]string{"nope"}); err == nil || !strings.Contains(err.Error(), "chưa có") {
+		t.Errorf("cmdDefault(nope) want 'chưa có', got %v", err)
+	}
+	if err := cmdAdd("work"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cmdDefault([]string{"work"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := defaultName(); got != "work" {
+		t.Errorf("defaultName = %q, want work", got)
 	}
 }
